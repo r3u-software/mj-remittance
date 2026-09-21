@@ -283,12 +283,21 @@ defaults, correctable if wrong:
   a net no-op. Read state via the closure (put it in the `useCallback`
   dependency array) instead.
 
-## Deployment (undecided as of this writing)
+## Deployment
 
-The project owner wants this live/public rather than local-only, which
-conflicts with the "never deployed publicly" design above — that
-conversation is still open. Key facts already established, so a future
-session doesn't have to re-derive them:
+Source is on GitHub: **https://github.com/r3u-software/mj-remittance**
+(public — was created private first since `gh repo create --public`
+was blocked by a session safety guard as "Create Public Surface";
+created private instead, then flipped to public via `gh repo edit
+--visibility public` once the owner explicitly confirmed. Deliberately
+a *template/proposal demo* per the owner, not the real production
+tool yet — only synthetic `fixtures/` data and no real Cummins data
+is committed). This is source control only — **not deployed/hosted
+anywhere**. `npm run dev` locally is still the only way to run it.
+
+Actual public hosting (a live URL, not just the GitHub repo) is still
+undecided. Key facts already established, so a future session doesn't
+have to re-derive them:
 - Plain GitHub Pages can't run this app — it's static-only, no server
   code, and SMTP sending needs a real server (browsers can't open raw
   SMTP sockets).
@@ -301,14 +310,31 @@ session doesn't have to re-derive them:
   mail** — still unconfirmed. If they're on Microsoft 365/Exchange (as
   most companies this size are), GAS can only ever be a parse/preview
   layer, not a real sender.
-- "Hide the code" (disabling right-click/devtools, "encrypting" the
-  JS) was requested and explicitly declined — anything that runs in a
-  browser is downloadable and readable by that browser's user, full
-  stop; obfuscation only inconveniences honest users, not anyone who
-  actually wants the source. Don't attempt this if asked again without
-  re-explaining why.
-- The "Download .eml" feature above is a legitimate, already-shipped
-  alternative that sidesteps the whole question for manual sending.
+- Vercel (runs this exact app, zero rewrite) was proposed as the
+  pragmatic option and explicitly declined for now — the owner wants
+  GitHub only at this stage ("dont push vercel").
+- The "Download .eml" feature is a legitimate, already-shipped
+  alternative that sidesteps the SMTP question entirely for manual
+  sending, regardless of what's eventually decided about hosting.
+
+**"Hide the code" — resolved, distinguish the two versions of this
+ask:** real code-hiding (obfuscation, blocking devtools *as
+protection*) was requested and declined — pointless here specifically
+since the repo is public, so the unobfuscated source is one click away
+on GitHub regardless of what a deployed page does. Once the owner
+clarified the actual goal was deterring **non-technical staff** from
+idly right-clicking/F12ing the live app (not stopping IT, who need the
+source and already have repo access) — a legitimate, much narrower UX
+ask — that part was built:
+`components/DevToolsDeterrent.tsx`, mounted in `app/layout.tsx`,
+blocks the context menu and the F12/Ctrl+Shift+I/J/C/Ctrl+U/Ctrl+S
+shortcuts. Explicitly commented as a deterrent, not a security
+control, so it doesn't get mistaken for one later — it's trivially
+bypassed via the browser's own menu or a different shortcut, which is
+fine given what it's actually for. If asked to strengthen this into
+something claimed as "protection," re-explain why that's not real
+before doing it — the code being public makes that true regardless of
+what runs client-side.
 
 ## Workflow (matches the owner's diagram)
 

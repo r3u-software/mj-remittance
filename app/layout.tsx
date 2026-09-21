@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { RunProvider } from "@/components/RunProvider";
+import { DevToolsDeterrent } from "@/components/DevToolsDeterrent";
 
 export const metadata: Metadata = {
   title: "MJ Remittance — Cummins AP",
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body>
+        <DevToolsDeterrent />
         <RunProvider>{children}</RunProvider>
       </body>
     </html>
