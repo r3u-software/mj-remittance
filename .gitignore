@@ -1,0 +1,20 @@
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# local env / secrets
+.env
+.env.local
+.env*.local
+
+# local audit log db
+data/
+*.db
+*.db-journal
+
+# never commit real supplier/payment exports
+uploads/
+*.real.*
