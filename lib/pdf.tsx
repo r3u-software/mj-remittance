@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 8,
   },
-  table: { marginTop: 8 },
+  table: { marginTop: 8, fontSize: 8 },
   tableHeaderRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
