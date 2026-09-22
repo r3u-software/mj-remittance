@@ -89,38 +89,61 @@ text — the join key**, matches "Supplier no" from file 1), `IDSUTY`,
 has no usable email — surface that clearly in the UI (don't silently
 drop them; the owner needs to see who can't be emailed and decide).
 
-Only AU-currency sample data was provided. The lookup file's `IDCSCD`
-column suggests NZ is a real future case (the legacy WI doc's title
-literally says "AU & NZ") but no NZ sample exists yet — don't build
-NZ-specific branching blind; keep the parser currency-agnostic where
-it's free to do so, and treat true NZ support as a follow-up once a
-real NZ sample shows up.
+NZ support: **built**, once a real NZ sample PDF was provided (see
+"Output: the remittance PDF" below) — the lookup file's `IDCSCD`
+column (AU/NZ) is what selects the letterhead per supplier.
 
 ## Output: the remittance PDF
 
-One PDF per supplier, replicating the existing Cummins South Pacific
-Pty Ltd letterhead template (`Template_1123.docx`/`.pdf` in the owner's
-reference material — not copied into this repo; ask the owner to
-re-share it, or work from the description here + their feedback on
-generated output):
-- Letterhead: Cummins South Pacific logo (red "Cummins" wordmark + "South
-  Pacific"), company name/ABN/address/phone/fax, inside a rounded-corner
-  bordered box, with "Supplier no: <no>" and "Date: <dd/mm/yy>" plus the
-  supplier's own name/address underneath.
+One PDF per supplier, in one of **two letterhead templates selected by
+the supplier's country code** (`MatchedSupplier.countryCode`, from the
+lookup file's `IDCSCD` — falls back to AU for anything not explicitly
+`"NZ"`, including suppliers with no lookup match at all, since AU is
+the overwhelming majority of real data seen so far). Profiles live in
+`lib/companyInfo.ts` (`COMPANY_PROFILES.AU` / `.NZ`,
+`getCompanyProfile()`); `lib/pdf.tsx` renders whichever one a supplier
+resolves to — same shared component and layout for both, only the
+letterhead data differs:
+
+| | AU | NZ |
+|---|---|---|
+| Entity name | Cummins South Pacific Pty. Ltd. | Cummins New Zealand Limited (+ "Cummins South Pacific Pty Ltd," sub-line) |
+| Tax ID | ABN 42006332949 | none (omitted entirely — matches the real NZ sample, which shows no tax ID) |
+| Address | 2 Caribbean Drive, Scoresby Vic | NZ Regional Office: 9 Langely Road, Manukau City, Auckland, Private Bag 94-004, S.A.M.C 2241 |
+| Phone/fax labels | "Phone :" / "Fax no:" | "Telephone:" / "Fax:" |
+| Total row label | "Total this Debit :" | "Total :" |
+| Logo, layout, promo box, table columns | identical | identical |
+
+Verified by rendering both against the two real reference PDFs
+(`Template_1123.pdf` for AU, and a real NZ sample the owner provided)
+side by side — text-for-text match on both.
+
+Shared across both templates:
+- Letterhead: Cummins South Pacific logo (red "Cummins" wordmark +
+  "South Pacific" — same logo image for both AU and NZ, per the real
+  NZ sample) inside a rounded-corner bordered box, with "Supplier no:
+  <no>" and "Date: <dd/mm/yy>" plus the supplier's own name/address
+  underneath.
 - A dashed-border promo box inviting suppliers to register for email
   remittance advice, contact address **`cbs.ap.au@cummins.com`** (this
-  is the current template's address — an older sample PDF the owner
-  provided showed a different address, `CBSfinanceSP@Cummins.com`;
-  flagged as an open discrepancy, go with the current template's
-  address unless the owner corrects it).
+  is the current AU template's address, also used verbatim on the NZ
+  one per the real sample; an older AU sample PDF the owner provided
+  earlier showed a different address, `CBSfinanceSP@Cummins.com` —
+  flagged as a resolved-in-favor-of-current discrepancy, go with
+  `cbs.ap.au@cummins.com` unless the owner corrects it).
 - Invoice table: `Invoice Date | Invoice Number | Description | Nett
   Amount` (4 columns — narrower than the 5-column source data;
   `Description` has no source field and is intentionally left blank,
-  `Invoice Number` maps from the source's `Inv.Ref.No.`), followed by a
-  bold `Total this Debit : <sum>` line matching the source file's own
-  total (use it to validate the parser — computed sum should equal the
-  source's stated total; mismatch means a parsing bug, surface it,
-  don't silently trust either number).
+  `Invoice Number` maps from the source's `Inv.Ref.No.`), followed by
+  the bold total line (label varies by country, see table above)
+  matching the source file's own total (use it to validate the parser
+  — computed sum should equal the source's stated total; mismatch
+  means a parsing bug, surface it, don't silently trust either
+  number).
+
+`fixtures/sample-bank-export.txt` / `sample-supplier-lookup.xlsx`
+supplier 90006 is the NZ regression-test case (`lib/companyInfo.test.ts`,
+`lib/match.test.ts`'s country-code test).
 
 Generated with `@react-pdf/renderer` (React-component PDF generation,
 no headless-browser dependency) rather than trying to mail-merge into
@@ -267,6 +290,11 @@ defaults, correctable if wrong:
   send and the on-screen preview, so it can never drift out of sync.
   Needs no SMTP configuration at all — this works today regardless of
   what's eventually decided about hosting/sending (see below).
+  Includes the `X-Unsent: 1` header — without it, Outlook opens a
+  `.eml` in read-only "received message" view (no Send button,
+  From/To locked); with it, Outlook opens a real editable draft with a
+  working Send button. Found by comparing against a `.eml` from a
+  previous project that worked correctly.
 - **Select-all checkbox only selects sendable rows** — rows with no
   valid email (no lookup match, or a blank/invalid one) are never
   auto-selected, deliberately: there's nowhere to send them. It's a

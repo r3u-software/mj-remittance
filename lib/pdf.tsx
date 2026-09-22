@@ -3,7 +3,7 @@ import { Document, Page, View, Text, Image, StyleSheet, renderToBuffer } from "@
 import path from "node:path";
 import fs from "node:fs";
 import type { MatchedSupplier } from "./types";
-import { COMPANY } from "./companyInfo";
+import { getCompanyProfile } from "./companyInfo";
 import { formatCurrency } from "./format";
 
 const styles = StyleSheet.create({
@@ -65,6 +65,7 @@ const logoPath = path.join(process.cwd(), "public", "cummins-logo.png");
 const logoDataUri = `data:image/png;base64,${fs.readFileSync(logoPath).toString("base64")}`;
 
 export function RemittanceDocument({ supplier }: { supplier: MatchedSupplier }) {
+  const company = getCompanyProfile(supplier.countryCode);
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -72,13 +73,18 @@ export function RemittanceDocument({ supplier }: { supplier: MatchedSupplier }) 
           {/* eslint-disable-next-line jsx-a11y/alt-text -- this is @react-pdf/renderer's Image (a PDF drawing primitive), not an HTML img */}
           <Image src={logoDataUri} style={styles.logo} />
           <View style={styles.companyBlock}>
-            <Text style={styles.companyName}>{COMPANY.name}</Text>
-            <Text>ABN {COMPANY.abn}</Text>
-            {COMPANY.addressLines.map((line) => (
+            <Text style={styles.companyName}>{company.name}</Text>
+            {company.subName && <Text>{company.subName}</Text>}
+            {company.abn && <Text>ABN {company.abn}</Text>}
+            {company.addressLines.map((line) => (
               <Text key={line}>{line}</Text>
             ))}
-            <Text>Phone : {COMPANY.phone}</Text>
-            <Text>Fax no: {COMPANY.fax}</Text>
+            <Text>
+              {company.phoneLabel} {company.phone}
+            </Text>
+            <Text>
+              {company.faxLabel} {company.fax}
+            </Text>
           </View>
         </View>
 
@@ -105,7 +111,7 @@ export function RemittanceDocument({ supplier }: { supplier: MatchedSupplier }) 
         </View>
 
         <View style={styles.promoBox}>
-          <Text>{COMPANY.registerPromoText}</Text>
+          <Text>{company.registerPromoText}</Text>
         </View>
 
         <View style={styles.table}>
@@ -126,7 +132,7 @@ export function RemittanceDocument({ supplier }: { supplier: MatchedSupplier }) 
         </View>
 
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total this Debit :</Text>
+          <Text style={styles.totalLabel}>{company.totalLabel}</Text>
           <Text style={styles.totalValue}>{formatCurrency(supplier.computedTotal)}</Text>
         </View>
         {supplier.totalMismatch && (

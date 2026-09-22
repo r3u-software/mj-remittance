@@ -35,4 +35,11 @@ describe("matchSuppliers", () => {
       expect(s.computedTotal).toBe(s.statedTotal);
     }
   });
+
+  it("carries the lookup file's country code through, for the PDF's AU/NZ letterhead choice", () => {
+    const au = matched.find((s) => s.supplierNo === "90001")!;
+    const nz = matched.find((s) => s.supplierNo === "90006")!;
+    expect(au.countryCode).toBe("AU");
+    expect(nz.countryCode).toBe("NZ");
+  });
 });

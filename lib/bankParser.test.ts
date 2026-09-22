@@ -10,7 +10,7 @@ describe("parseBankExport", () => {
   const { blocks, warnings } = parseBankExport(buffer);
 
   it("finds every supplier block", () => {
-    expect(blocks.map((b) => b.supplierNo)).toEqual(["90001", "90002", "90003", "90004", "90005"]);
+    expect(blocks.map((b) => b.supplierNo)).toEqual(["90001", "90002", "90003", "90004", "90005", "90006"]);
   });
 
   it("parses a single-page block's invoices and total", () => {

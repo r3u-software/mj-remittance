@@ -33,6 +33,7 @@ export interface MatchedSupplier {
   supplierNo: string;
   supplierName: string;
   lookupSupplierName: string | null;
+  countryCode: string | null;
   addressLines: string[];
   reportDate: string | null;
   invoices: InvoiceLine[];

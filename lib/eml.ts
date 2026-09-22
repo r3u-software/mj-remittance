@@ -20,6 +20,12 @@ export function buildEmlContent(item: SendRequestItem, from: string): string {
     `Subject: ${subject}`,
     `Date: ${new Date().toUTCString()}`,
     `MIME-Version: 1.0`,
+    // Tells Outlook (and other clients that honor it) to open this as
+    // an editable draft with a working Send button, rather than a
+    // read-only "received message" view — without it, Outlook shows
+    // no Send button and locks the From/To fields, since it assumes
+    // any .eml it opens is a historical message, not a new one to send.
+    `X-Unsent: 1`,
     `Content-Type: multipart/mixed; boundary="${boundary}"`,
   ].join("\r\n");
 

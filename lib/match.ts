@@ -27,6 +27,7 @@ export function matchSuppliers(
       supplierNo: block.supplierNo,
       supplierName: block.supplierName,
       lookupSupplierName: lookupRow?.supplierName ?? null,
+      countryCode: lookupRow?.countryCode ?? null,
       addressLines: block.addressLines,
       reportDate: block.reportDate,
       invoices: block.invoices,
