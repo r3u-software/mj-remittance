@@ -96,15 +96,36 @@ fixed-width **UTF-16LE** text report (SAP-style "Direct Debit Advice"),
 
 **2. Supplier email lookup (`.xlsx`)** — e.g. `36. Supplier Remittance
 Email Address_AU_16Sep26_LATEST.xlsx` (internally called "the Movex
-file" by the owner; exported from Movex/SAP). One header row, columns:
-`IDSUNO` (blank spacer column), `IDSUNO.1` (**supplier number as
-text — the join key**, matches "Supplier no" from file 1), `IDSUTY`,
-`IDSUNM` (supplier name), `IDSTAT`, `IDCSCD` (country, `AU`/`NZ`),
-`IDPHNO` (phone), `CBEMAL` (**email address**), `Status` (`Valid` /
-`Empty`). ~3,400 rows. Join file-1 supplier blocks to this by
-`IDSUNO.1`. A supplier with `Status != 'Valid'` or a blank `CBEMAL`
-has no usable email — surface that clearly in the UI (don't silently
-drop them; the owner needs to see who can't be emailed and decide).
+file" by the owner; exported from Movex/SAP). One header row.
+**AU and NZ exports don't have the same columns** — handle both,
+don't assume one (`lib/lookupParser.ts`):
+- **AU**: `IDSUNO` (blank spacer column), `IDSUNO.1` (**supplier
+  number as text — the join key**, a duplicate-header artifact from
+  whatever upstream tool produced it), `IDSUTY`, `IDSUNM` (supplier
+  name), `IDSTAT`, `IDCSCD` (country, `AU`/`NZ`), `IDPHNO` (phone),
+  `CBEMAL` (**email address**), `Status` (`Valid` / `Empty`). ~3,400
+  rows.
+- **NZ**: same columns minus `IDSUNO.1` and minus `Status` entirely —
+  a plain `IDSUNO` holds the real supplier number directly, and
+  there's nothing to say Valid/Empty. Found this the hard way: the
+  parser originally required `Status === "Valid"` to mark a row
+  sendable, which — with no `Status` column at all — silently marked
+  *every* NZ supplier unsendable regardless of having a perfectly good
+  email. Fixed by detecting whether the `Status` column exists at all
+  (checked once against the header row, not per-cell) and, when it
+  doesn't, reporting `"Valid"` for every row so the existing
+  `status === "Valid" && email` check in `lib/match.ts` falls through
+  to what NZ actually has: whether `CBEMAL` is populated. An AU row
+  whose `Status` cell is genuinely blank (`"Empty"`) is unaffected —
+  that's a real value in a column that exists, not a missing column.
+  `fixtures/sample-supplier-lookup-nz.xlsx` / `lib/lookupParser.test.ts`
+  cover this.
+
+Join file-1 supplier blocks to this by `IDSUNO.1 ?? IDSUNO`. A
+supplier with no usable email (`Status != 'Valid'` where that column
+exists, or a blank `CBEMAL` either way) — surface that clearly in the
+UI (don't silently drop them; the owner needs to see who can't be
+emailed and decide).
 
 NZ support: **built**, once a real NZ sample PDF was provided (see
 "Output: the remittance PDF" below) — the lookup file's `IDCSCD`
@@ -140,7 +161,9 @@ Shared across both templates:
   "South Pacific" — same logo image for both AU and NZ, per the real
   NZ sample) inside a rounded-corner bordered box, with "Supplier no:
   <no>" and "Date: <dd/mm/yy>" plus the supplier's own name/address
-  underneath.
+  underneath — this block is 8pt (`styles.row` / `styles.addressBlock`
+  in `lib/pdf.tsx`), smaller than the page's own 10pt default that the
+  invoice table and totals use.
 - A dashed-border promo box inviting suppliers to register for email
   remittance advice, contact address **`cbs.ap.au@cummins.com`** (this
   is the current AU template's address, also used verbatim on the NZ

@@ -20,9 +20,9 @@ const styles = StyleSheet.create({
   logo: { width: 110, height: 45, objectFit: "contain" },
   companyBlock: { alignItems: "flex-end", textAlign: "right" },
   companyName: { fontSize: 13, fontWeight: 700, marginBottom: 4 },
-  row: { flexDirection: "row", justifyContent: "space-between", marginTop: 12 },
+  row: { flexDirection: "row", justifyContent: "space-between", marginTop: 12, fontSize: 8 },
   label: { fontWeight: 700 },
-  addressBlock: { marginTop: 8 },
+  addressBlock: { marginTop: 8, fontSize: 8 },
   promoBox: {
     borderWidth: 1,
     borderStyle: "dashed",

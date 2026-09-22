@@ -43,3 +43,15 @@ describe("matchSuppliers", () => {
     expect(nz.countryCode).toBe("NZ");
   });
 });
+
+describe("matchSuppliers against a real NZ-layout lookup file (no IDSUNO.1, no Status)", () => {
+  it("still resolves a supplier with an email to valid, end to end", () => {
+    const { blocks } = parseBankExport(fs.readFileSync(path.join(fixturesDir, "sample-bank-export.txt")));
+    const lookup = parseLookupWorkbook(fs.readFileSync(path.join(fixturesDir, "sample-supplier-lookup-nz.xlsx")));
+    const matched = matchSuppliers(blocks, lookup);
+
+    const kiwi = matched.find((s) => s.supplierNo === "90006")!;
+    expect(kiwi.emailStatus).toBe("valid");
+    expect(kiwi.email).toBe("accounts@kiwiservices.example.co.nz");
+  });
+});
