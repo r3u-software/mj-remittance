@@ -4,7 +4,10 @@ const SUPPLIER_LINE = /^(.+?)\s*Supplier no\s*:\s*(\d+)\s*$/;
 const DATE_LINE = /^Date\s*:\s*(\d{2}\/\d{2}\/\d{2,4})/;
 const TABLE_HEADER_LINE = /^Inv\.Date\s+Inv\.Ref\.No\./;
 const CONTINUED_LINE = /Continued next page/i;
-const TOTAL_LINE = /Total this Debit\s*:\s*([\d,]+\.\d{2}-?)/i;
+// AU writes "Total this Debit : <amount>"; NZ writes just "Total :
+// <amount>" (confirmed against a real NZ sample export and PDF) — "this
+// Debit" is optional so both close a block correctly.
+const TOTAL_LINE = /Total(?:\s+this\s+Debit)?\s*:\s*([\d,]+\.\d{2}-?)/i;
 
 type State = "idle" | "address" | "seekHeader" | "rows";
 

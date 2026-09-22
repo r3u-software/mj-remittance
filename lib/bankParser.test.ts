@@ -10,7 +10,15 @@ describe("parseBankExport", () => {
   const { blocks, warnings } = parseBankExport(buffer);
 
   it("finds every supplier block", () => {
-    expect(blocks.map((b) => b.supplierNo)).toEqual(["90001", "90002", "90003", "90004", "90005", "90006"]);
+    expect(blocks.map((b) => b.supplierNo)).toEqual([
+      "90001",
+      "90002",
+      "90003",
+      "90004",
+      "90005",
+      "90006",
+      "90007",
+    ]);
   });
 
   it("parses a single-page block's invoices and total", () => {
@@ -48,5 +56,26 @@ describe("parseBankExport", () => {
       { invDate: "09/09/26", invRefNo: "9000522222", nettAmount: -50.0 },
     ]);
     expect(negAdj.statedTotal).toBe(450.0);
+  });
+
+  it('closes an NZ block on "Total :" (no "this Debit") and cleanly resumes after it', () => {
+    // Regression test for a real bug found on a real 43-supplier NZ
+    // file: the old TOTAL_LINE regex only matched "Total this Debit :"
+    // (AU wording). NZ writes just "Total :", so it was never
+    // recognized — the parser stayed stuck in "reading invoice rows"
+    // straight through the next block's header/GST/address noise,
+    // misreading all of it as failed invoice rows (422 warnings) and
+    // leaving statedTotal null (mismatch warning) on every supplier.
+    const kiwi = blocks.find((b) => b.supplierNo === "90006")!;
+    expect(kiwi.invoices).toEqual([{ invDate: "10/09/26", invRefNo: "9000611111", nettAmount: 1200.0 }]);
+    expect(kiwi.statedTotal).toBe(1200.0);
+
+    // And the very next block (AU-formatted, right after the NZ one)
+    // must be unaffected — proves there's no cascade into it.
+    const afterNz = blocks.find((b) => b.supplierNo === "90007")!;
+    expect(afterNz.invoices).toEqual([{ invDate: "11/09/26", invRefNo: "9000711111", nettAmount: 80.0 }]);
+    expect(afterNz.statedTotal).toBe(80.0);
+
+    expect(warnings).toEqual([]);
   });
 });

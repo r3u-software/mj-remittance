@@ -76,6 +76,23 @@ fixed-width **UTF-16LE** text report (SAP-style "Direct Debit Advice"),
   test. Verified the fix against the real 194-supplier file: zero
   mismatches, zero warnings, every computed total matches the file's
   own stated total to the cent.
+- **NZ's total line reads `"Total :"`, not `"Total this Debit :"`** —
+  same underlying bank export format, genuinely different wording per
+  country (matches the NZ PDF's own `Total : 64400.00`, see below).
+  `TOTAL_LINE`'s old regex only matched the AU wording, so an NZ
+  block's `"Total :"` line was never recognized as the block's end.
+  That's a *worse* failure than a wrong number: the parser stayed
+  stuck in "reading invoice rows" state straight through the *next*
+  block's header/GST/address/phone noise, misreading all of it as
+  failed invoice rows — caught on a real 43-supplier NZ file (422
+  warnings, every supplier's `statedTotal` null → every row flagged
+  with a mismatch warning, even though the actual dollar sums were
+  still correct by luck). Fixed by making `"this Debit"` optional in
+  the regex. Regression test: `fixtures/sample-bank-export.txt`
+  supplier 90006 (genuinely NZ-formatted block, reconstructed header
+  wording from the real warning output) followed immediately by
+  supplier 90007 (AU-formatted) — proves both the NZ close and that
+  there's no cascade into the next block.
 
 **2. Supplier email lookup (`.xlsx`)** — e.g. `36. Supplier Remittance
 Email Address_AU_16Sep26_LATEST.xlsx` (internally called "the Movex
