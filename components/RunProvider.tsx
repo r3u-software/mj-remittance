@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState } from "react";
+import { buildRemittanceFilename } from "@/lib/filename";
 import type { MatchedSupplier, ParseWarning, SendRequestItem, SendResultItem } from "@/lib/types";
 
 /**
@@ -61,6 +62,7 @@ function toSendItem(s: MatchedSupplier): SendRequestItem {
     supplierNo: s.supplierNo,
     supplierName: s.supplierName,
     email: s.email!,
+    countryCode: s.countryCode,
     reportDate: s.reportDate,
     statedTotal: s.statedTotal,
     computedTotal: s.computedTotal,
@@ -216,7 +218,7 @@ export function RunProvider({ children }: { children: React.ReactNode }) {
       const disposition = res.headers.get("Content-Disposition") ?? "";
       const filename =
         disposition.match(/filename="([^"]+)"/)?.[1] ??
-        (targets.length === 1 ? `${targets[0]!.supplierNo}.eml` : "remittance-emails.zip");
+        (targets.length === 1 ? `${buildRemittanceFilename(targets[0]!)}.eml` : "remittance-emails.zip");
 
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");

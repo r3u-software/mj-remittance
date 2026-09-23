@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useRun } from "@/components/RunProvider";
 import { buildEmailBody, buildEmailSubject } from "@/lib/emailTemplate";
+import { buildRemittanceFilename } from "@/lib/filename";
 
 export function PdfPreview() {
   const { suppliers, previewSupplierNo } = useRun();
@@ -34,7 +35,7 @@ export function PdfPreview() {
           <div style={{ color: "var(--muted)" }}>Subject</div>
           <div>{buildEmailSubject(supplier)}</div>
           <div style={{ color: "var(--muted)" }}>Attachment</div>
-          <div>{supplier.supplierNo}.pdf</div>
+          <div>{buildRemittanceFilename(supplier)}.pdf</div>
         </div>
         <div
           style={{
@@ -47,6 +48,8 @@ export function PdfPreview() {
           }}
         >
           {buildEmailBody(supplier)}
+          {/* eslint-disable-next-line @next/next/no-img-element -- static public asset, no benefit from next/image here */}
+          <img src="/cummins-logo.png" alt="Cummins" width={150} style={{ display: "block", marginTop: 8 }} />
         </div>
       </div>
       <div className="tablewrap" style={{ padding: 0 }}>

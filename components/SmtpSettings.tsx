@@ -11,6 +11,18 @@ interface SmtpGetResponse {
   hasPassword: boolean;
 }
 
+const PROVIDER_PRESETS: { label: string; host: string; port: number }[] = [
+  { label: "Gmail", host: "smtp.gmail.com", port: 587 },
+  { label: "Outlook / Microsoft 365", host: "smtp.office365.com", port: 587 },
+  { label: "Zoho Mail", host: "smtp.zoho.com", port: 587 },
+  { label: "Yahoo Mail", host: "smtp.mail.yahoo.com", port: 587 },
+];
+const CUSTOM_PROVIDER = "Custom";
+
+function providerForHost(host: string): string {
+  return PROVIDER_PRESETS.find((p) => p.host === host)?.label ?? CUSTOM_PROVIDER;
+}
+
 const SOURCE_LABEL: Record<SmtpGetResponse["source"], string> = {
   settings: "Using the settings saved below.",
   env: "Using SMTP_* vars from .env.local (not this form).",
@@ -22,6 +34,7 @@ export function SmtpSettings() {
   const [source, setSource] = useState<SmtpGetResponse["source"]>("none");
   const [hasPassword, setHasPassword] = useState(false);
 
+  const [provider, setProvider] = useState(CUSTOM_PROVIDER);
   const [host, setHost] = useState("");
   const [port, setPort] = useState(587);
   const [user, setUser] = useState("");
@@ -42,12 +55,27 @@ export function SmtpSettings() {
         setSource(body.source);
         setHasPassword(body.hasPassword);
         setHost(body.host);
+        setProvider(providerForHost(body.host));
         setPort(body.port);
         setUser(body.user);
         setFrom(body.from);
       })
       .finally(() => setLoaded(true));
   }, []);
+
+  function handleProviderChange(nextProvider: string) {
+    setProvider(nextProvider);
+    const preset = PROVIDER_PRESETS.find((p) => p.label === nextProvider);
+    if (preset) {
+      setHost(preset.host);
+      setPort(preset.port);
+    }
+  }
+
+  function handleHostChange(nextHost: string) {
+    setHost(nextHost);
+    setProvider(providerForHost(nextHost));
+  }
 
   async function handleTest() {
     setTesting(true);
@@ -105,9 +133,27 @@ export function SmtpSettings() {
 
       <div className="formgrid">
         <label className="field">
-          <span className="label">Host</span>
-          <input className="inp" value={host} onChange={(e) => setHost(e.target.value)} placeholder="smtp.cummins.com" />
+          <span className="label">Provider</span>
+          <select className="inp" value={provider} onChange={(e) => handleProviderChange(e.target.value)}>
+            {PROVIDER_PRESETS.map((p) => (
+              <option key={p.label} value={p.label}>
+                {p.label}
+              </option>
+            ))}
+            <option value={CUSTOM_PROVIDER}>Custom</option>
+          </select>
         </label>
+        {provider === CUSTOM_PROVIDER && (
+          <label className="field">
+            <span className="label">Host</span>
+            <input
+              className="inp"
+              value={host}
+              onChange={(e) => handleHostChange(e.target.value)}
+              placeholder="smtp.cummins.com"
+            />
+          </label>
+        )}
         <label className="field">
           <span className="label">Port</span>
           <input

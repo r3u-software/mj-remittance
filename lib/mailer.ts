@@ -1,8 +1,12 @@
 import nodemailer from "nodemailer";
+import path from "node:path";
 import type { SendRequestItem, SendResultItem } from "./types";
 import { recordSend } from "./db";
 import { readSmtpConfig, type SmtpConfig } from "./smtpConfig";
-import { buildEmailBody, buildEmailSubject } from "./emailTemplate";
+import { buildEmailBody, buildEmailBodyHtml, buildEmailSubject, EMAIL_LOGO_CID } from "./emailTemplate";
+import { buildRemittanceFilename } from "./filename";
+
+const logoPath = path.join(process.cwd(), "public", "cummins-logo.png");
 
 function buildTransport(config: SmtpConfig) {
   return nodemailer.createTransport({
@@ -39,11 +43,17 @@ export async function sendRemittanceEmails(
           to: item.email,
           subject: buildEmailSubject(item),
           text: buildEmailBody(item),
+          html: buildEmailBodyHtml(item),
           attachments: [
             {
-              filename: `${item.supplierNo}.pdf`,
+              filename: `${buildRemittanceFilename(item)}.pdf`,
               content: Buffer.from(item.pdfBase64, "base64"),
               contentType: "application/pdf",
+            },
+            {
+              filename: "cummins-logo.png",
+              path: logoPath,
+              cid: EMAIL_LOGO_CID,
             },
           ],
         });

@@ -27,9 +27,10 @@ export interface CompanyProfile {
 }
 
 const SHARED_LOGO_PATH = "public/cummins-logo.png";
-const SHARED_PROMO_TEXT =
-  "This remittance advice has been sent to your registered email address. If you would like to request an update, please email cbs.ap.au@cummins.com and include a signed request on your company letterhead.";
-const SHARED_REGISTER_EMAIL = "cbs.ap.au@cummins.com";
+const AU_REGISTER_EMAIL = "cbs.ap.au@cummins.com";
+const NZ_REGISTER_EMAIL = "cbs.ap.nz@cummins.com";
+const promoText = (email: string) =>
+  `This remittance advice has been sent to your registered email address. If you would like to request an update, please email ${email} and include a signed request on your company letterhead.`;
 
 export const COMPANY_PROFILES = {
   AU: {
@@ -40,8 +41,8 @@ export const COMPANY_PROFILES = {
     phone: "+61 3 9765 3222",
     faxLabel: "Fax no:",
     fax: "+61 3 9763 0079",
-    registerEmail: SHARED_REGISTER_EMAIL,
-    registerPromoText: SHARED_PROMO_TEXT,
+    registerEmail: AU_REGISTER_EMAIL,
+    registerPromoText: promoText(AU_REGISTER_EMAIL),
     totalLabel: "Total this Debit :",
     logoPath: SHARED_LOGO_PATH,
   },
@@ -54,8 +55,8 @@ export const COMPANY_PROFILES = {
     phone: "(09) 2771 000",
     faxLabel: "Fax:",
     fax: "(09) 2771 001",
-    registerEmail: SHARED_REGISTER_EMAIL,
-    registerPromoText: SHARED_PROMO_TEXT,
+    registerEmail: NZ_REGISTER_EMAIL,
+    registerPromoText: promoText(NZ_REGISTER_EMAIL),
     totalLabel: "Total :",
     logoPath: SHARED_LOGO_PATH,
   },

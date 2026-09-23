@@ -25,4 +25,14 @@ describe("getCompanyProfile", () => {
   it("is case-insensitive", () => {
     expect(getCompanyProfile("nz").name).toBe("Cummins New Zealand Limited");
   });
+
+  it("uses a country-specific register/query email, not a shared AU one, in both the PDF promo box and its text", () => {
+    const au = getCompanyProfile("AU");
+    const nz = getCompanyProfile("NZ");
+    expect(au.registerEmail).toBe("cbs.ap.au@cummins.com");
+    expect(nz.registerEmail).toBe("cbs.ap.nz@cummins.com");
+    expect(au.registerPromoText).toContain("cbs.ap.au@cummins.com");
+    expect(nz.registerPromoText).toContain("cbs.ap.nz@cummins.com");
+    expect(nz.registerPromoText).not.toContain("cbs.ap.au@cummins.com");
+  });
 });

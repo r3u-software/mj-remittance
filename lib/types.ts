@@ -54,6 +54,7 @@ export interface SendRequestItem {
   supplierNo: string;
   supplierName: string;
   email: string;
+  countryCode: string | null;
   reportDate: string | null;
   statedTotal: number | null;
   computedTotal: number;

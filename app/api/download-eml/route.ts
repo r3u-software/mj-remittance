@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
 import { buildEmlContent } from "@/lib/eml";
+import { buildRemittanceFilename } from "@/lib/filename";
 import { readSmtpConfig } from "@/lib/smtpConfig";
 import type { SendRequestItem } from "@/lib/types";
 
@@ -34,14 +35,14 @@ export async function POST(req: NextRequest) {
     return new NextResponse(eml, {
       headers: {
         "Content-Type": "message/rfc822",
-        "Content-Disposition": `attachment; filename="${items[0]!.supplierNo}.eml"`,
+        "Content-Disposition": `attachment; filename="${buildRemittanceFilename(items[0]!)}.eml"`,
       },
     });
   }
 
   const zip = new JSZip();
   for (const item of items) {
-    zip.file(`${item.supplierNo}.eml`, buildEmlContent(item, from));
+    zip.file(`${buildRemittanceFilename(item)}.eml`, buildEmlContent(item, from));
   }
   const zipBuffer = await zip.generateAsync({ type: "uint8array" });
   const dateStamp = new Date().toISOString().slice(0, 10);
